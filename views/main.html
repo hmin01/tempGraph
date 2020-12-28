@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Thermometer Chart</title>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+
+    <!-- Bootstrap 4.5.3 CSS -->
+    <link rel="stylesheet" href="../public/stylesheets/bootstrap.css" />
+    <link rel="stylesheet" href="../public/stylesheets/bootstrap-grid.css" />
+    <!-- DataTables 1.10.22 CSS -->
+    <link rel="stylesheet" href="../public/stylesheets/datatables.min.css" />
+    <!-- Font awesome 5 CSS -->
+    <link rel="stylesheet" href="../public/fontawesome/css/all.css" />
+
+    <style>
+      .main-bg {
+        background-color: #F4F5F4;
+      }
+
+      .main-body {
+        min-height: 100vh;
+        padding: 1rem;
+        position: relative;
+      }
+      .ibox {
+        background-color: #FFFFFF;
+        border-radius: 0.2rem;
+        flex-direction: column;
+        margin-bottom: 1.25rem;
+        position: relative;
+        width: 100%;
+      }
+      .ibox:last-child {
+        margin-bottom: 0;
+      }
+      .ibox-header {
+        border-bottom: 1px solid #EAE7EC;
+        padding: 0.625rem 10rem 0.625rem 0.95rem;
+        position: relative;
+      }
+      .ibox-title {
+        margin-bottom: 0;
+        user-select: none;
+      }
+      .ibox-tools {
+        right: 0.95rem;
+        position: absolute;
+        top: 0.75rem;
+      }
+      .ibox-tools > .ibox-tool-item {
+        color: #9A9A9A;
+        cursor: pointer;
+        font-size: 16px;
+        margin-right: 0.625rem;
+      }
+      .ibox-tools > .ibox-tool-item:last-child {
+        margin-right: 0;
+      }
+      .ibox-body {
+        height: calc(100% - 45px);
+        padding: 0.375rem 0.95rem;
+        position: relative;
+        width: 100%;
+      }
+
+      #chart {
+        width: 100%
+        /* flex: 1; */
+      }
+      #panel-table {
+        padding: 0;
+      }
+      .dataTables_wrapper.no-footer .dataTables_scrollBody {
+        border-bottom: 0;
+      }
+      #panel-table table thead > tr > th {
+        border-bottom: 1px solid #DEE2E6;
+      }
+      #panel-table table tbody > tr > td {
+        border-bottom: 1px solid #DEE2E6;
+        border-top: 0;
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+      #panel-table table tbody > tr:last-child > td {
+        border-bottom: 0;
+      }
+      #panel-table table tbody > tr > td.dataTables_empty {
+        border-bottom: 0;
+      }
+
+      .ibox .form-group {
+        margin-bottom: 1rem;
+      }
+      .ibox .form-group:last-child {
+        margin-bottom: 0.6rem;
+      }
+      .label-name {
+        display: block;
+        font-size: 11px;
+        font-weight: 300;
+        margin-bottom: 3px;
+      }
+      .input-edit {
+        border: 1px solid transparent;
+        border-bottom: 1px solid #DEE2E6;
+        display: block;
+        font-size: 21px;
+        font-weight: 600;
+        transition: border 0.2s;
+        width: 60%;
+      }
+      .input-edit:disabled {
+        background-color: #FFFFFF;
+        border-bottom: 1px solid transparent;
+      }
+      .input-edit:focus {
+        border-bottom: 1px solid #2186FD;
+        outline: none;
+      }
+      #panel-edit {
+        overflow-y: auto;
+      }
+      #selected-datetime {
+        font-size: 21px;
+        margin-bottom: 0;
+      }
+    </style>
+  </head>
+  <body class=main-bg>
+    <section class="container-fluid main-body">
+      <div class="ibox shadow-sm" style="height: calc((100vh - 52px) * 0.55);">
+        <div class="ibox-header">
+          <h5 class="ibox-title">Graph</h5>
+          <div class="ibox-tools">
+            <input class="d-none" type=file accept=".xls, .xlxs" id="input-file" onchange="upload(this.files[0])" />
+            <a class="ibox-tool-item" id="btn-capture" title="Capture"><i class="fas fa-image"></i></a>
+            <a class="ibox-tool-item" id="btn-upload" title="Upload"><i class="fas fa-file-upload"></i></a>
+            <a class="ibox-tool-item" id="btn-apply" title="Apply range"><i class="fas fa-sync"></i></a>
+          </div>
+        </div>
+        <div class="ibox-body" id="panel-chart">
+          <div id="chart"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-8">
+          <div class="ibox shadow-sm" style="height: calc((100vh - 52px) * 0.45);">
+            <div class="ibox-header">
+              <h5 class="ibox-title">Table</h5>
+              <div class="ibox-tools">
+                <a class="ibox-tool-item" id="btn-download" title="download"><i class="fas fa-download"></i></a>
+              </div>
+            </div>
+            <div class="ibox-body" id="panel-table">
+              <table class="table" id="table-main"></table>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="ibox shadow-sm" style="height: calc((100vh - 52px) * 0.45);">
+            <div class="ibox-header">
+              <h5 class="ibox-title">Edit row (data)</h5>
+              <div class="ibox-tools">
+                <a class="ibox-tool-item" id="btn-undo" title="Undo"><i class="fas fa-undo-alt"></i></a>
+                <a class="ibox-tool-item" id="btn-edit" title="Edit table row"><i class="fas fa-edit"></i></a>
+              </div>
+            </div>
+            <div class="ibox-body" id="panel-edit">
+              <div class="form-group">
+                <label class="label-name">Datetime</label>
+                <p id="selected-datetime">-</p>
+              </div>
+              <div class="form-group">
+                <label class="label-name">Temperature</label>
+                <input class="input-edit" type="number" placeholder="" id="input-temp" disabled />
+              </div>
+              <div class="form-group">
+                <label class="label-name">Relative Humidity</label>
+                <input class="input-edit" type="number" placeholder="" id="input-rh" disabled />
+              </div>
+              <div class="form-group">
+                <label class="label-name">Dew Point</label>
+                <input class="input-edit" type="number" placeholder="" id="input-dp" disabled />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- jQuery 3.5.1 JS -->
+    <script>window.$ = window.jQuery = require("../public/javascripts/jquery.min.js");</script>
+    <!-- Bootstrap 4.5.3 JS -->
+    <script type="text/javascript" src="../public/javascripts/bootstrap.min.js"></script>
+    <!-- Echart JS -->
+    <script type="text/javascript" src="../public/javascripts/echarts.min.js"></script>
+    <!-- DataTables 1.10.22 JS -->
+    <script type="text/javascript" src="../public/javascripts/datatables.min.js"></script>
+    <!-- Renderer function -->
+    <script type="text/javascript" src="../public/javascripts/renderer.js"></script>
+    <script>
+      // Init chart
+      initChart();
+      // Init table
+      initTable();
+      // Click upload button
+      document.getElementById('btn-upload').addEventListener('click', function() {
+        document.getElementById('input-file').click();
+      });
+      // Click apply button
+      document.getElementById('btn-apply').addEventListener('click', function() {
+        updateTable();
+      });
+      // Click capture button
+      document.getElementById('btn-capture').addEventListener('click', function() {
+        captureGraph();
+      });
+      // Click download button
+      document.getElementById('btn-download').addEventListener('click', function() {
+        download();
+      });
+      // Click edit
+      document.getElementById('btn-edit').addEventListener('click', function() {
+        edit();
+      });
+      // Click undo button
+      document.getElementById('btn-undo').addEventListener('click', function() {
+        undo();
+      })
+    </script>
+  </body>
+</html>
