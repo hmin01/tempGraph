@@ -1,6 +1,9 @@
+const { sign } = require('crypto');
 const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron');
 const { existsSync } = require('fs');
 const xlsx = require('xlsx')
+// Management window
+let win = null;
 
 const browserOption = {
   width: 1400,
@@ -11,8 +14,8 @@ const browserOption = {
 };
 
 function createWindow() {
-  const win = new BrowserWindow(browserOption);
-  win.loadFile(__dirname + '/../views/main.html');
+  win = new BrowserWindow(browserOption);
+  win.loadFile(__dirname + '/../views/login.html');
 
   win.webContents.openDevTools();
 }
@@ -21,16 +24,24 @@ app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    app.quit()
+    app.quit();
   }
 });
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
+    createWindow();
   }
 });
 
+/* Communication to renderer (sign in) */
+ipcMain.on('sign_in', async (event, args) => {
+  if (args.user === "User01" && args.password === "q1w2e3") {
+    win.loadFile(__dirname + '/../views/main.html');
+  } else {
+    event.sender.send('sign_in', "User 또는 비밀번호가 올바르지 않습니다. 다시 입력해주세요.");
+  }
+});
 /* Communication to renderer (upload file) */
 ipcMain.on('upload', async (event, args) => {
   if (existsSync(args)) {
@@ -83,8 +94,7 @@ ipcMain.on('upload', async (event, args) => {
     event.sender.send('upload', {result: false, message: "[Error] Not found upload file"});
   }
 });
-
-/* Communication to renderer (upload file) */
+/* Communication to renderer (export excel file) */
 ipcMain.on('download', async (event, args) => {
   if (args.length > 0) {
     const workbook = xlsx.utils.book_new();

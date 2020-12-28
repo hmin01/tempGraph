@@ -133,4 +133,4 @@ ipcRenderer.on('upload', function(event, args) {
 /* Communication main process (download file) */
 ipcRenderer.on('download', function(event, ) {
 
-})
+});

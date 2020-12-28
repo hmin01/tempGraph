@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Thermometer Chart</title>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+
+    <!-- Bootstrap 4.5.3 CSS -->
+    <link rel="stylesheet" href="../public/stylesheets/bootstrap.css" />
+    <link rel="stylesheet" href="../public/stylesheets/bootstrap-grid.css" />
+    <!-- Font awesome 5 CSS -->
+    <link rel="stylesheet" href="../public/fontawesome/css/all.css" />
+    <!-- Main CSS -->
+    <style>
+      #win-login {
+        align-items: center;
+        background-color: #F4F5F4;
+        display: flex;
+        height: 100vh;
+        justify-content: center;
+        width: 100vw;
+      }
+      #form-login {
+        background-color: #FFFFFF;
+        border-radius: 0.5rem;
+        padding: 1.125rem 1.75rem;
+      }
+      #app-title {
+        font-size: 58px;
+        font-weight: 800;
+        margin-bottom: 1.125rem;
+        letter-spacing: -2px;
+        user-select: none;
+      }
+      #form-login .label-login {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 3px;
+        user-select: none;
+      }
+      #form-login .input-login {
+        background-color: #FFFFFF;
+        border: 1px solid #E7EAEC;
+        border-radius: 5px;
+        color: #545655;
+        display: block;
+        font-size: 15px;
+        padding: 0.375rem 0.75rem;
+        transition: border-color 0.35s;
+        width: 100%;
+      }
+      #form-login .input-login:focus {
+        border-color: #2E46FA;
+        outline: none;
+      }
+      #form-login .button-login {
+        background-color: #1E70E3;
+        border: none;
+        border-radius: 5px;
+        color: #FFFFFF;
+        display: block;
+        padding: 0.375rem 0.5rem;
+        transition: background-color 0.35s;
+        width: 100%;
+      }
+      #form-login .button-login:hover {
+        background-color: #1A63C9;
+      }
+      #form-login .button-login:focus {
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="win-login">
+      <div class="shadow-sm" id="form-login">
+        <h1 id="app-title">TempGraph</h1>
+        <div class="form-group">
+          <label class="label-login" for="input-user">User</label>
+          <input class="input-login" id="input-user" type="text" placeholder="ID를 입력하세요." value="User01" />
+        </div>
+        <div class="form-group">
+          <label class="label-login" for="input-id">Password</label>
+          <input class="input-login" id="input-pw" type="password" placeholder="비밀번호를 입력하세요." />
+        </div>
+        <button class="button-login" id="btn-login">Sign in</button>
+      </div>
+    </section>
+    <!-- Login -->
+    <script type="text/javascript" src="../public/javascripts/renderer_login.js"></script>
+    <!-- Script -->
+    <script>
+      // Click sign_in button
+      document.getElementById('btn-login').addEventListener('click', function() {
+        sign_in();
+      });
+      // Push enter
+      document.getElementById('input-pw').addEventListener('keydown', function(e) {
+        if (e.keyCode === 13) {
+          sign_in();
+        }
+      });
+    </script>
+  </body>
+</html>
