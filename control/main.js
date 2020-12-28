@@ -1,5 +1,5 @@
 const { dir } = require('console');
-const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const { existsSync, mkdirSync, unlinkSync } = require('fs');
 const { join } = require('path');
 const xlsx = require('xlsx')
@@ -17,7 +17,15 @@ const browserOption = {
 function createWindow() {
   win = new BrowserWindow(browserOption);
   win.loadFile(__dirname + '/../views/login.html');
-
+  // Create template
+  const menuTemplate = [{
+      role: 'window',
+      submenu: [{role: 'minimize', role: 'close'}]
+  }];
+  // Set menu
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
+  // Open develop tool (dev-mode)
   win.webContents.openDevTools();
 }
 
