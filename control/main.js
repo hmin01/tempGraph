@@ -1,6 +1,7 @@
-const { sign } = require('crypto');
+const { dir } = require('console');
 const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron');
-const { existsSync } = require('fs');
+const { existsSync, mkdirSync, unlinkSync } = require('fs');
+const { join } = require('path');
 const xlsx = require('xlsx')
 // Management window
 let win = null;
@@ -96,21 +97,40 @@ ipcMain.on('upload', async (event, args) => {
 });
 /* Communication to renderer (export excel file) */
 ipcMain.on('download', async (event, args) => {
-  if (args.length > 0) {
-    const workbook = xlsx.utils.book_new();
-
-    const data = [['Index', 'Datetime', 'Temp (℃)', 'RH (%rh)', 'Dew point (℃)']];
-    for (let i = 0; i < args.length; i ++) {
-      data[i+1] = [];
-      data[i+1].push(i);
-      data[i+1].push(args[i].timestamp);
-      data[i+1].push(args[i].temperature);
-      data[i+1].push(args[i].relativeHumidity);
-      data[i+1].push(args[i].dewPoint);
+  try {
+    if (args.length > 0) {
+      const workbook = xlsx.utils.book_new();
+  
+      const data = [['Index', 'Datetime', 'Temp (℃)', 'RH (%rh)', 'Dew point (℃)']];
+      for (let i = 0; i < args.length; i ++) {
+        data[i+1] = [];
+        data[i+1].push(i);
+        data[i+1].push(args[i].timestamp);
+        data[i+1].push(args[i].temperature);
+        data[i+1].push(args[i].relativeHumidity);
+        data[i+1].push(args[i].dewPoint);
+      }
+  
+      const worksheet = xlsx.utils.aoa_to_sheet(data);
+      xlsx.utils.book_append_sheet(workbook, worksheet);
+      // Set path
+      const filename = `${Date.now()}_data.xlsx`;
+      const dirPath = join(__dirname, '../public/download');
+      const filePath = join(dirPath, filename);
+      if (!existsSync(dirPath)) {
+        mkdirSync(dirPath);
+      }
+      // Creaet excel file
+      xlsx.writeFile(workbook, filePath);
+      // Response created excel file path
+      event.sender.send('download', {result: true, filename: filename, filePath: filePath});
+      // Delete excel file
+      setTimeout(function() {
+        unlinkSync(filePath);
+      }, 30000);
     }
-
-    const worksheet = xlsx.utils.aoa_to_sheet(data);
-    xlsx.utils.book_append_sheet(workbook, worksheet);
-    xlsx.writeFile(workbook, `${Date.now()}_data.xlsx`);
+  } catch (err) {
+    console.error(err);
+    event.sender.send('download', {result: false, message: "[Error] Failed to create file"});
   }
 });

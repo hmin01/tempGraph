@@ -116,7 +116,9 @@ function captureGraph() {
 }
 
 function download() {
-  ipcRenderer.send('download', totalData.slice(chart.rangeIndex.start, chart.rangeIndex.end + 1));
+  if (totalData !== null && totalData.length > 0) {
+    ipcRenderer.send('download', totalData.slice(chart.rangeIndex.start, chart.rangeIndex.end + 1));
+  }
 }
 
 /* Communication main process (upload file) */
@@ -131,6 +133,16 @@ ipcRenderer.on('upload', function(event, args) {
 });
 
 /* Communication main process (download file) */
-ipcRenderer.on('download', function(event, ) {
-
+ipcRenderer.on('download', function(event, args) {
+  if (args.result) {
+    const link = document.createElement('a');
+    link.download = args.filename;
+    link.href = args.filePath;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    delete link;
+  } else {
+    alert(args.message);
+  }
 });
